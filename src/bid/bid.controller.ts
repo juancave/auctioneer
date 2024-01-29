@@ -8,7 +8,7 @@ export class BidController {
 
   @Get('/:auctionId')
   getByAuctionId(@Param('auctionId') auctionId: number): BidDto[] {
-    return this.bidService.getByAuctionId(auctionId);
+    return this.bidService.getByAuctionId(Number(auctionId));
   }
 
   @Get('/:auctionId/:userId')
@@ -16,6 +16,6 @@ export class BidController {
     @Param('auctionId') auctionId: number,
     @Param('userId') userId: number,
   ): BidDto[] {
-    return this.bidService.getByUserId(auctionId, userId);
+    return this.bidService.getByUserId(Number(auctionId), Number(userId));
   }
 }
