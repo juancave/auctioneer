@@ -4,9 +4,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { UserDto } from './user.dto';
-
-const MISSING_FIELDS = 'There are some fields missing';
-const EMAIl_NOT_AVAILABLE = 'The email is not available';
+import { EMAIl_NOT_AVAILABLE, MISSING_FIELDS } from 'src/shared/constants';
 
 const data: UserDto[] = [
   { id: 1, name: 'Juan', email: 'juan@gmail.com' },
