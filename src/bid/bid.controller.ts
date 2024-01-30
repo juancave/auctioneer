@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { BidService } from './bid.service';
 import { BidDto } from './bid.dto';
 
@@ -17,5 +17,10 @@ export class BidController {
     @Param('userId') userId: number,
   ): BidDto[] {
     return this.bidService.getByUserId(Number(auctionId), Number(userId));
+  }
+
+  @Post()
+  create(@Body() bidDto: BidDto): BidDto {
+    return this.bidService.create(bidDto);
   }
 }
