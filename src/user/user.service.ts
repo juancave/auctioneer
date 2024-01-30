@@ -6,7 +6,7 @@ import {
 import { UserDto } from './user.dto';
 import { EMAIl_NOT_AVAILABLE, MISSING_FIELDS } from 'src/shared/constants';
 
-const data: UserDto[] = [
+export const data: UserDto[] = [
   { id: 1, name: 'Juan', email: 'juan@gmail.com' },
   { id: 2, name: 'Camilo', email: 'camilo@gmail.com' },
 ];
@@ -31,9 +31,10 @@ export class UserService {
       throw new ConflictException(EMAIl_NOT_AVAILABLE);
     }
 
-    const createdUser = {
+    const createdUser: UserDto = {
       id: data[data.length - 1].id + 1,
-      ...userDto,
+      email: userDto.email,
+      name: userDto.name,
     };
 
     data.push(createdUser);

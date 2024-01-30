@@ -6,7 +6,7 @@ import {
 import { AuctionDto } from './auction.dto';
 import { ALREADY_EXISTS, MISSING_FIELDS } from 'src/shared/constants';
 
-const data: AuctionDto[] = [
+export const data: AuctionDto[] = [
   {
     id: 1,
     description: 'Lego Car',
@@ -32,6 +32,15 @@ const data: AuctionDto[] = [
     value: 270,
     startsOn: 35,
     increments: 10,
+    state: 'new',
+  },
+  {
+    id: 4,
+    description: 'Zoo York Shoes',
+    date: new Date(),
+    value: 345,
+    startsOn: 55,
+    increments: 15,
     state: 'new',
   },
 ];
@@ -64,10 +73,14 @@ export class AuctionService {
       throw new ConflictException(ALREADY_EXISTS);
     }
 
-    const createdAuction = {
+    const createdAuction: AuctionDto = {
       id: data[data.length - 1].id + 1,
       date: new Date(),
-      ...auctionDto,
+      description: auctionDto.description,
+      increments: auctionDto.increments,
+      startsOn: auctionDto.startsOn,
+      value: auctionDto.value,
+      state: auctionDto.state,
     };
 
     data.push(createdAuction);
