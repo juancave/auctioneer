@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { AuctionService } from './auction.service';
 import { AuctionDto } from './auction.dto';
 
@@ -12,8 +19,11 @@ export class AuctionController {
   }
 
   @Get('/:id')
-  getById(@Param('id') id: number): AuctionDto {
-    return this.auctionService.getById(Number(id));
+  getById(
+    @Param('id', ParseIntPipe)
+    id: number,
+  ): AuctionDto {
+    return this.auctionService.getById(id);
   }
 
   @Post()
