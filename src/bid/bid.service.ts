@@ -5,47 +5,66 @@ import {
 } from '@nestjs/common';
 import { BidDto } from './bid.dto';
 import { MISSING_FIELDS } from 'src/shared/constants';
-import { data as auctionData } from '../auction/auction.service';
-import { data as userData } from '../user/user.service';
-
-const data: BidDto[] = [
-  { id: 1, auctionId: 1, date: new Date(), value: 40, userId: 1 },
-  { id: 2, auctionId: 2, date: new Date(), value: 150, userId: 2 },
-  { id: 3, auctionId: 1, date: new Date(), value: 50, userId: 1 },
-  { id: 4, auctionId: 3, date: new Date(), value: 35, userId: 2 },
-  { id: 5, auctionId: 1, date: new Date(), value: 120, userId: 1 },
-];
+import { AuctionService } from '../auction/auction.service';
+import { UserService } from '../user/user.service';
+import { BidEntity } from './bid.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class BidService {
-  getByAuctionId(auctionId: number): BidDto[] {
-    return data.filter((bid) => bid.auctionId == auctionId);
+  constructor(
+    @InjectRepository(BidEntity)
+    private bidRepository: Repository<BidEntity>,
+    private userService: UserService,
+    private auctionService: AuctionService,
+  ) {}
+
+  async getByAuctionId(auctionId: number): Promise<BidEntity[]> {
+    return await this.bidRepository.find({
+      where: { auction: { id: auctionId } },
+      select: {
+        user: {
+          name: true,
+        },
+      },
+      relations: { user: true },
+    });
   }
 
-  getByUserId(auctionId: number, userId: number): BidDto[] {
-    return data.filter(
-      (bid) => bid.auctionId === auctionId && bid.userId === userId,
-    );
+  async getByUserId(auctionId: number, userId: number): Promise<BidEntity[]> {
+    return await this.bidRepository.find({
+      where: {
+        auction: { id: auctionId },
+        user: { id: userId },
+      },
+      select: {
+        user: {
+          name: true,
+        },
+      },
+      relations: { user: true },
+    });
   }
 
-  create(bidDto: BidDto): BidDto {
+  async create(bidDto: BidDto): Promise<BidEntity> {
     if (!bidDto.value || !bidDto.auctionId || !bidDto.userId) {
       throw new BadRequestException(MISSING_FIELDS);
     }
 
-    const auction = auctionData.find(({ id }) => id === bidDto.auctionId);
+    const auction = await this.auctionService.getById(bidDto.auctionId);
     if (!auction) {
       throw new ConflictException('The auction does not exists');
     }
 
-    const userExists = userData.some(({ id }) => id === bidDto.userId);
-    if (!userExists) {
+    const user = await this.userService.getById(bidDto.userId);
+    if (!user) {
       throw new ConflictException('The user does not exists');
     }
 
-    const currentBids = data.filter(
-      ({ auctionId }) => auctionId === bidDto.auctionId,
-    );
+    const currentBids = await this.bidRepository.findBy({
+      auction: { id: bidDto.auctionId },
+    });
     if (currentBids.length) {
       const maxValue = Math.max(...currentBids.map(({ value }) => value));
       const minimumBid = maxValue + auction.increments;
@@ -73,16 +92,12 @@ export class BidService {
       );
     }
 
-    const createdBid: BidDto = {
-      id: data[data.length - 1].id + 1,
-      date: new Date(),
+    const bidEntity: BidEntity = this.bidRepository.create({
       value: bidDto.value,
-      auctionId: bidDto.auctionId,
-      userId: bidDto.userId,
-    };
+      auction,
+      user,
+    });
 
-    data.push(createdBid);
-
-    return createdBid;
+    return await this.bidRepository.save(bidEntity);
   }
 }

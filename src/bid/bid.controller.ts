@@ -14,7 +14,7 @@ export class BidController {
   constructor(private readonly bidService: BidService) {}
 
   @Get('/:auctionId')
-  getByAuctionId(@Param('auctionId') auctionId: number): BidDto[] {
+  getByAuctionId(@Param('auctionId') auctionId: number) {
     return this.bidService.getByAuctionId(Number(auctionId));
   }
 
@@ -22,12 +22,12 @@ export class BidController {
   getByUserId(
     @Param('auctionId', ParseIntPipe) auctionId: number,
     @Param('userId', ParseIntPipe) userId: number,
-  ): BidDto[] {
+  ) {
     return this.bidService.getByUserId(auctionId, userId);
   }
 
   @Post()
-  create(@Body() bidDto: BidDto): BidDto {
+  create(@Body() bidDto: BidDto) {
     return this.bidService.create(bidDto);
   }
 }
