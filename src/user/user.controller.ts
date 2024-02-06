@@ -14,17 +14,17 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  getAll(): UserDto[] {
+  getAll() {
     return this.userService.getAll();
   }
 
   @Get('/:id')
-  getById(@Param('id', ParseIntPipe) id: number): UserDto {
+  getById(@Param('id', ParseIntPipe) id: number) {
     return this.userService.getById(id);
   }
 
   @Post()
-  create(@Body() userDto: UserDto): UserDto {
+  create(@Body() userDto: UserDto) {
     return this.userService.create(userDto);
   }
 }
