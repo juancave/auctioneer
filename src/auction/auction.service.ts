@@ -5,57 +5,26 @@ import {
 } from '@nestjs/common';
 import { AuctionDto } from './auction.dto';
 import { ALREADY_EXISTS, MISSING_FIELDS } from 'src/shared/constants';
-
-export const data: AuctionDto[] = [
-  {
-    id: 1,
-    description: 'Lego Car',
-    date: new Date(),
-    value: 200,
-    startsOn: 40,
-    increments: 10,
-    state: 'used',
-  },
-  {
-    id: 2,
-    description: 'Bicycle',
-    date: new Date(),
-    value: 1200,
-    startsOn: 150,
-    increments: 20,
-    state: 'used',
-  },
-  {
-    id: 3,
-    description: 'Desk',
-    date: new Date(),
-    value: 270,
-    startsOn: 35,
-    increments: 10,
-    state: 'new',
-  },
-  {
-    id: 4,
-    description: 'Zoo York Shoes',
-    date: new Date(),
-    value: 345,
-    startsOn: 55,
-    increments: 15,
-    state: 'new',
-  },
-];
+import { InjectRepository } from '@nestjs/typeorm';
+import { AuctionEntity } from './auction.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuctionService {
-  getAll(): AuctionDto[] {
-    return data;
+  constructor(
+    @InjectRepository(AuctionEntity)
+    private auctionRepository: Repository<AuctionEntity>,
+  ) {}
+
+  async getAll(): Promise<AuctionEntity[]> {
+    return await this.auctionRepository.find();
   }
 
-  getById(id: number): AuctionDto {
-    return data.find((auction) => auction.id === id);
+  async getById(id: number): Promise<AuctionEntity> {
+    return this.auctionRepository.findOneBy({ id });
   }
 
-  create(auctionDto: AuctionDto): AuctionDto {
+  async create(auctionDto: AuctionDto): Promise<AuctionEntity> {
     if (
       !auctionDto.description ||
       !auctionDto.increments ||
@@ -66,25 +35,22 @@ export class AuctionService {
       throw new BadRequestException(MISSING_FIELDS);
     }
 
-    const auctionExists = data.some(
-      ({ description }) => description === auctionDto.description,
-    );
+    const auctionExists = await this.auctionRepository.countBy({
+      description: auctionDto.description,
+    });
+
     if (auctionExists) {
       throw new ConflictException(ALREADY_EXISTS);
     }
 
-    const createdAuction: AuctionDto = {
-      id: data[data.length - 1].id + 1,
-      date: new Date(),
+    const auction = this.auctionRepository.create({
       description: auctionDto.description,
       increments: auctionDto.increments,
       startsOn: auctionDto.startsOn,
       value: auctionDto.value,
       state: auctionDto.state,
-    };
+    });
 
-    data.push(createdAuction);
-
-    return createdAuction;
+    return this.auctionRepository.save(auction);
   }
 }
