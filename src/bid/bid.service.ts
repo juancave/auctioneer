@@ -29,6 +29,7 @@ export class BidService {
         },
       },
       relations: { user: true },
+      order: { value: 'desc' },
     });
   }
 
@@ -44,10 +45,11 @@ export class BidService {
         },
       },
       relations: { user: true },
+      order: { value: 'desc' },
     });
   }
 
-  async create(bidDto: BidDto): Promise<BidEntity> {
+  async create(bidDto: BidDto): Promise<BidDto> {
     if (!bidDto.value || !bidDto.auctionId || !bidDto.userId) {
       throw new BadRequestException(MISSING_FIELDS);
     }
@@ -111,6 +113,14 @@ export class BidService {
       user,
     });
 
-    return await this.bidRepository.save(bidEntity);
+    const createdBid = await this.bidRepository.save(bidEntity);
+
+    return new BidDto(
+      createdBid.id,
+      createdBid.auction.id,
+      createdBid.createdAt,
+      createdBid.value,
+      createdBid.user.id,
+    );
   }
 }
