@@ -54,20 +54,33 @@ export class BidService {
 
     const auction = await this.auctionService.getById(bidDto.auctionId);
     if (!auction) {
-      throw new ConflictException('The auction does not exists');
+      throw new BadRequestException('The auction does not exists');
     }
 
     const user = await this.userService.getById(bidDto.userId);
     if (!user) {
-      throw new ConflictException('The user does not exists');
+      throw new BadRequestException('The user does not exists');
     }
 
-    const currentBids = await this.bidRepository.findBy({
-      auction: { id: bidDto.auctionId },
+    const mostRecentBid = await this.bidRepository.findOne({
+      where: { auction: { id: bidDto.auctionId } },
+      order: { value: 'desc' },
+      select: {
+        user: {
+          id: true,
+        },
+      },
+      relations: { user: true },
     });
-    if (currentBids.length) {
-      const maxValue = Math.max(...currentBids.map(({ value }) => value));
+    if (mostRecentBid) {
+      const maxValue = mostRecentBid.value;
       const minimumBid = maxValue + auction.increments;
+
+      if (mostRecentBid.user.id === bidDto.userId) {
+        throw new ConflictException(
+          'You can not bid again if you own the most recent bid',
+        );
+      }
 
       if (auction.value === maxValue) {
         throw new ConflictException('The auction found a buyer');
