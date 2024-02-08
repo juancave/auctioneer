@@ -7,3 +7,9 @@ export class AuctionDto {
   readonly increments: number;
   readonly state: string;
 }
+
+export enum AuctionState {
+  NEW = 'new',
+  USED = 'used',
+  REFURBISHED = 'refurbished',
+}

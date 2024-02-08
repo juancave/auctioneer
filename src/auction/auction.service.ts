@@ -3,7 +3,7 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { AuctionDto } from './auction.dto';
+import { AuctionDto, AuctionState } from './auction.dto';
 import { ALREADY_EXISTS, MISSING_FIELDS } from 'src/shared/constants';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuctionEntity } from './auction.entity';
@@ -33,6 +33,14 @@ export class AuctionService {
       !auctionDto.state
     ) {
       throw new BadRequestException(MISSING_FIELDS);
+    }
+
+    if (
+      !Object.values(AuctionState).includes(auctionDto.state as AuctionState)
+    ) {
+      throw new BadRequestException(
+        `The state is not valid. Valid options are: ${Object.values(AuctionState)}`,
+      );
     }
 
     const auctionExists = await this.auctionRepository.countBy({
