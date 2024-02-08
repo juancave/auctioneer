@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserDto } from './user.dto';
 import { EMAIl_NOT_AVAILABLE, MISSING_FIELDS } from 'src/shared/constants';
@@ -16,15 +17,27 @@ export class UserService {
     private userRepository: Repository<UserEntity>,
   ) {}
 
-  async getAll(): Promise<UserEntity[]> {
-    return this.userRepository.find();
+  async getAll(): Promise<UserDto[]> {
+    const users = await this.userRepository.find();
+
+    if (!users.length) {
+      throw new NotFoundException('There are not users');
+    }
+
+    return users.map((user) => this.convertEntityToDto(user));
   }
 
-  async getById(id: number): Promise<UserEntity> {
-    return this.userRepository.findOneBy({ id });
+  async getById(id: number): Promise<UserDto> {
+    const user = await this.userRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new NotFoundException('The user was not found');
+    }
+
+    return this.convertEntityToDto(user);
   }
 
-  async create(userDto: UserDto): Promise<UserEntity> {
+  async create(userDto: UserDto): Promise<UserDto> {
     if (!userDto.email || !userDto.name) {
       throw new BadRequestException(MISSING_FIELDS);
     }
@@ -41,6 +54,12 @@ export class UserService {
       name: userDto.name,
     });
 
-    return await this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+
+    return this.convertEntityToDto(savedUser);
   }
+
+  private convertEntityToDto = (entity: UserEntity) => {
+    return new UserDto(entity.id, entity.email, entity.name);
+  };
 }
