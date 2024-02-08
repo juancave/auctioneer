@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { BidDto } from './bid.dto';
 import { MISSING_FIELDS } from 'src/shared/constants';
@@ -20,33 +21,51 @@ export class BidService {
     private auctionService: AuctionService,
   ) {}
 
-  async getByAuctionId(auctionId: number): Promise<BidEntity[]> {
-    return await this.bidRepository.find({
+  async getByAuctionId(auctionId: number): Promise<BidDto[]> {
+    const bids = await this.bidRepository.find({
       where: { auction: { id: auctionId } },
       select: {
         user: {
-          name: true,
+          id: true,
+        },
+        auction: {
+          id: true,
         },
       },
-      relations: { user: true },
+      relations: { user: true, auction: true },
       order: { value: 'desc' },
     });
+
+    if (!bids.length) {
+      throw new NotFoundException('There are not bids for the provided input');
+    }
+
+    return bids.map((bid) => this.convertEntityToDto(bid));
   }
 
-  async getByUserId(auctionId: number, userId: number): Promise<BidEntity[]> {
-    return await this.bidRepository.find({
+  async getByUserId(auctionId: number, userId: number): Promise<BidDto[]> {
+    const bids = await this.bidRepository.find({
       where: {
         auction: { id: auctionId },
         user: { id: userId },
       },
       select: {
         user: {
-          name: true,
+          id: true,
+        },
+        auction: {
+          id: true,
         },
       },
-      relations: { user: true },
+      relations: { user: true, auction: true },
       order: { value: 'desc' },
     });
+
+    if (!bids.length) {
+      throw new NotFoundException('There are not bids for the provided input');
+    }
+
+    return bids.map((bid) => this.convertEntityToDto(bid));
   }
 
   async create(bidDto: BidDto): Promise<BidDto> {
@@ -115,12 +134,16 @@ export class BidService {
 
     const createdBid = await this.bidRepository.save(bidEntity);
 
-    return new BidDto(
-      createdBid.id,
-      createdBid.auction.id,
-      createdBid.createdAt,
-      createdBid.value,
-      createdBid.user.id,
-    );
+    return this.convertEntityToDto(createdBid);
   }
+
+  convertEntityToDto = (entity: BidEntity) => {
+    return new BidDto(
+      entity.id,
+      entity.auction.id,
+      entity.createdAt,
+      entity.value,
+      entity.user.id,
+    );
+  };
 }
