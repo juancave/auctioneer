@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuctionDto, AuctionState } from './auction.dto';
 import { ALREADY_EXISTS, MISSING_FIELDS } from 'src/shared/constants';
@@ -16,15 +17,27 @@ export class AuctionService {
     private auctionRepository: Repository<AuctionEntity>,
   ) {}
 
-  async getAll(): Promise<AuctionEntity[]> {
-    return await this.auctionRepository.find();
+  async getAll(): Promise<AuctionDto[]> {
+    const auctions = await this.auctionRepository.find();
+
+    if (!auctions.length) {
+      throw new NotFoundException('There are not auctions');
+    }
+
+    return auctions.map((auction) => this.convertEntityToDto(auction));
   }
 
-  async getById(id: number): Promise<AuctionEntity> {
-    return this.auctionRepository.findOneBy({ id });
+  async getById(id: number): Promise<AuctionDto> {
+    const auction = await this.auctionRepository.findOneBy({ id });
+
+    if (!auction) {
+      throw new NotFoundException('The auction was not found');
+    }
+
+    return this.convertEntityToDto(auction);
   }
 
-  async create(auctionDto: AuctionDto): Promise<AuctionEntity> {
+  async create(auctionDto: AuctionDto): Promise<AuctionDto> {
     if (
       !auctionDto.description ||
       !auctionDto.increments ||
@@ -59,6 +72,20 @@ export class AuctionService {
       state: auctionDto.state,
     });
 
-    return this.auctionRepository.save(auction);
+    const savedAuction = await this.auctionRepository.save(auction);
+
+    return this.convertEntityToDto(savedAuction);
   }
+
+  private convertEntityToDto = (entity: AuctionEntity): AuctionDto => {
+    return new AuctionDto(
+      entity.id,
+      entity.description,
+      entity.createdAt,
+      entity.value,
+      entity.startsOn,
+      entity.increments,
+      entity.state as AuctionState,
+    );
+  };
 }

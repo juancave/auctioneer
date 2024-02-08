@@ -14,7 +14,7 @@ export class AuctionController {
   constructor(private readonly auctionService: AuctionService) {}
 
   @Get()
-  getAll() {
+  getAll(): Promise<AuctionDto[]> {
     return this.auctionService.getAll();
   }
 
@@ -22,12 +22,12 @@ export class AuctionController {
   getById(
     @Param('id', ParseIntPipe)
     id: number,
-  ) {
+  ): Promise<AuctionDto> {
     return this.auctionService.getById(id);
   }
 
   @Post()
-  create(@Body() auctionDto: AuctionDto) {
+  create(@Body() auctionDto: AuctionDto): Promise<AuctionDto> {
     return this.auctionService.create(auctionDto);
   }
 }
