@@ -137,7 +137,7 @@ export class BidService {
     return this.convertEntityToDto(createdBid);
   }
 
-  convertEntityToDto = (entity: BidEntity) => {
+  private convertEntityToDto = (entity: BidEntity) => {
     return new BidDto(
       entity.id,
       entity.auction.id,
