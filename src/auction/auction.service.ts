@@ -9,6 +9,7 @@ import { ALREADY_EXISTS, MISSING_FIELDS } from 'src/shared/constants';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuctionEntity } from './auction.entity';
 import { Repository } from 'typeorm';
+import { isValidISODate } from 'src/shared/util/dates';
 
 @Injectable()
 export class AuctionService {
@@ -40,8 +41,10 @@ export class AuctionService {
   async create(auctionDto: AuctionDto): Promise<AuctionDto> {
     if (
       !auctionDto.description ||
-      !auctionDto.increments ||
       !auctionDto.startsOn ||
+      !auctionDto.endsOn ||
+      !auctionDto.increments ||
+      !auctionDto.minBid ||
       !auctionDto.value ||
       !auctionDto.state
     ) {
@@ -56,6 +59,18 @@ export class AuctionService {
       );
     }
 
+    const startsOnDate = isValidISODate(auctionDto.startsOn);
+    if (!startsOnDate) {
+      throw new BadRequestException(
+        'The field startsOn is not a valid ISO date',
+      );
+    }
+
+    const endsOnDate = isValidISODate(auctionDto.endsOn);
+    if (!endsOnDate) {
+      throw new BadRequestException('The field endsOn is not a valid ISO date');
+    }
+
     const auctionExists = await this.auctionRepository.countBy({
       description: auctionDto.description,
     });
@@ -66,8 +81,10 @@ export class AuctionService {
 
     const auction = this.auctionRepository.create({
       description: auctionDto.description,
+      startsOn: startsOnDate,
+      endsOn: endsOnDate,
       increments: auctionDto.increments,
-      startsOn: auctionDto.startsOn,
+      minBid: auctionDto.minBid,
       value: auctionDto.value,
       state: auctionDto.state,
     });
@@ -81,9 +98,11 @@ export class AuctionService {
     return new AuctionDto(
       entity.id,
       entity.description,
+      entity.startsOn.toISOString(),
+      entity.endsOn.toISOString(),
       entity.createdAt,
       entity.value,
-      entity.startsOn,
+      entity.minBid,
       entity.increments,
       entity.state as AuctionState,
     );

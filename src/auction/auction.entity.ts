@@ -13,6 +13,12 @@ export class AuctionEntity {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Column()
+  startsOn: Date;
+
+  @Column()
+  endsOn: Date;
+
   @Column({ length: 300 })
   description: string;
 
@@ -20,7 +26,7 @@ export class AuctionEntity {
   value: number;
 
   @Column()
-  startsOn: number;
+  minBid: number;
 
   @Column()
   increments: number;

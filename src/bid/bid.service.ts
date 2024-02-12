@@ -114,7 +114,7 @@ export class BidService {
       }
     }
 
-    if (bidDto.value < auction.startsOn) {
+    if (bidDto.value < auction.minBid) {
       throw new ConflictException(
         `The provided value is less than the minimun bid of ${auction.startsOn}`,
       );

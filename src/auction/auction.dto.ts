@@ -1,26 +1,32 @@
 export class AuctionDto {
   readonly id: number;
   readonly description: string;
+  readonly startsOn: string;
+  readonly endsOn: string;
   readonly date: Date;
   readonly value: number;
-  readonly startsOn: number;
+  readonly minBid: number;
   readonly increments: number;
   readonly state: string;
 
   constructor(
     id: number,
     description: string,
+    startsOn: string,
+    endsOn: string,
     date: Date,
     value: number,
-    startsOn: number,
+    minBid: number,
     increments: number,
     state: AuctionState,
   ) {
     this.id = id;
     this.description = description;
+    this.startsOn = startsOn;
+    this.endsOn = endsOn;
     this.date = date;
     this.value = value;
-    this.startsOn = startsOn;
+    this.minBid = minBid;
     this.increments = increments;
     this.state = state;
   }
