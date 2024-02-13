@@ -4,6 +4,7 @@ import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 import 'dotenv/config';
 import { AuctionEntity } from 'src/auction/auction.entity';
 import { BidEntity } from 'src/bid/bid.entity';
+import { TagEntity } from 'src/tag/tag.entity';
 import { UserEntity } from 'src/user/user.entity';
 
 @Injectable()
@@ -16,7 +17,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      entities: [UserEntity, AuctionEntity, BidEntity],
+      entities: [UserEntity, AuctionEntity, BidEntity, TagEntity],
       synchronize: true,
       logging: true,
     };

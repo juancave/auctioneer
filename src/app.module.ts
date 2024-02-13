@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { BidModule } from './bid/bid.module';
 import { AuctionModule } from './auction/auction.module';
+import { TagModule } from './tag/tag.module';
+
 import { LoggerMiddleware } from './shared/middlewares/logger.middleware';
 import { TypeOrmConfigService } from './database/typeorm-config.service';
 
@@ -17,6 +19,7 @@ import { TypeOrmConfigService } from './database/typeorm-config.service';
     UserModule,
     BidModule,
     AuctionModule,
+    TagModule,
   ],
   controllers: [AppController],
   providers: [AppService],
