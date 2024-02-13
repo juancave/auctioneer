@@ -73,7 +73,7 @@ export class BidService {
       throw new BadRequestException(MISSING_FIELDS);
     }
 
-    const auction = await this.auctionService.getById(bidDto.auctionId);
+    const auction = await this.auctionService.findOneById(bidDto.auctionId);
     if (!auction) {
       throw new BadRequestException('The auction does not exists');
     }
@@ -81,6 +81,10 @@ export class BidService {
     const user = await this.userService.getById(bidDto.userId);
     if (!user) {
       throw new BadRequestException('The user does not exists');
+    }
+
+    if (new Date() > auction.endsOn) {
+      throw new ConflictException('The auction is not longer available');
     }
 
     const mostRecentBid = await this.bidRepository.findOne({

@@ -38,6 +38,10 @@ export class AuctionService {
     return this.convertEntityToDto(auction);
   }
 
+  async findOneById(id: number): Promise<AuctionEntity> {
+    return this.auctionRepository.findOneBy({ id });
+  }
+
   async create(auctionDto: AuctionDto): Promise<AuctionDto> {
     if (
       !auctionDto.description ||
