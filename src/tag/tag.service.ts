@@ -7,7 +7,7 @@ import {
 import { TagDto } from './tag.dto';
 import { TagEntity } from './tag.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 @Injectable()
 export class TagService {
@@ -24,6 +24,14 @@ export class TagService {
     }
 
     return tags.map((tag) => this.convertEntityToDto(tag));
+  }
+
+  async getByIds(ids: number[]): Promise<TagEntity[]> {
+    return await this.tagRepository.find({
+      where: {
+        id: In(ids),
+      },
+    });
   }
 
   async create(tagDto: TagDto): Promise<TagDto> {

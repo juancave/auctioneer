@@ -10,16 +10,27 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AuctionEntity } from './auction.entity';
 import { Repository } from 'typeorm';
 import { isValidISODate } from 'src/shared/util/dates';
+import { TagService } from 'src/tag/tag.service';
+import { TagEntity } from 'src/tag/tag.entity';
 
 @Injectable()
 export class AuctionService {
   constructor(
     @InjectRepository(AuctionEntity)
     private auctionRepository: Repository<AuctionEntity>,
+    private tagsService: TagService,
   ) {}
 
   async getAll(): Promise<AuctionDto[]> {
-    const auctions = await this.auctionRepository.find();
+    const auctions = await this.auctionRepository.find({
+      select: {
+        tags: {
+          name: true,
+        },
+      },
+      relations: { tags: true },
+      order: { id: 'desc' },
+    });
 
     if (!auctions.length) {
       throw new NotFoundException('There are not auctions');
@@ -29,13 +40,23 @@ export class AuctionService {
   }
 
   async getById(id: number): Promise<AuctionDto> {
-    const auction = await this.auctionRepository.findOneBy({ id });
+    const auctions = await this.auctionRepository.find({
+      where: {
+        id,
+      },
+      select: {
+        tags: {
+          name: true,
+        },
+      },
+      relations: { tags: true },
+    });
 
-    if (!auction) {
+    if (!auctions.length) {
       throw new NotFoundException('The auction was not found');
     }
 
-    return this.convertEntityToDto(auction);
+    return this.convertEntityToDto(auctions[0]);
   }
 
   async findOneById(id: number): Promise<AuctionEntity> {
@@ -83,6 +104,8 @@ export class AuctionService {
       throw new ConflictException(ALREADY_EXISTS);
     }
 
+    const tags: TagEntity[] = await this.getTagEntities(auctionDto);
+
     const auction = this.auctionRepository.create({
       description: auctionDto.description,
       startsOn: startsOnDate,
@@ -91,12 +114,32 @@ export class AuctionService {
       minBid: auctionDto.minBid,
       value: auctionDto.value,
       state: auctionDto.state,
+      tags,
     });
 
     const savedAuction = await this.auctionRepository.save(auction);
 
     return this.convertEntityToDto(savedAuction);
   }
+
+  private getTagEntities = async (auctionDto: AuctionDto) => {
+    if (auctionDto.tags?.length) {
+      const ids = auctionDto.tags.reduce(
+        (tags: number[], tag: string | number) => {
+          if (Number(tag)) {
+            tags.push(Number(tag));
+          }
+
+          return tags;
+        },
+        [] as number[],
+      );
+
+      return await this.tagsService.getByIds(ids);
+    }
+
+    return undefined;
+  };
 
   private convertEntityToDto = (entity: AuctionEntity): AuctionDto => {
     return new AuctionDto(
@@ -109,6 +152,7 @@ export class AuctionService {
       entity.minBid,
       entity.increments,
       entity.state as AuctionState,
+      entity.tags?.map((tag) => tag.name) || [],
     );
   };
 }

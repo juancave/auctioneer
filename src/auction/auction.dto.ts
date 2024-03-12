@@ -8,6 +8,7 @@ export class AuctionDto {
   readonly minBid: number;
   readonly increments: number;
   readonly state: string;
+  readonly tags: string[] | number[];
 
   constructor(
     id: number,
@@ -19,6 +20,7 @@ export class AuctionDto {
     minBid: number,
     increments: number,
     state: AuctionState,
+    tags: string[] | number[],
   ) {
     this.id = id;
     this.description = description;
@@ -29,6 +31,7 @@ export class AuctionDto {
     this.minBid = minBid;
     this.increments = increments;
     this.state = state;
+    this.tags = tags;
   }
 }
 

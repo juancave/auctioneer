@@ -1,8 +1,11 @@
+import { TagEntity } from 'src/tag/tag.entity';
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 
 @Entity('auction')
@@ -33,4 +36,8 @@ export class AuctionEntity {
 
   @Column()
   state: string;
+
+  @ManyToMany(() => TagEntity)
+  @JoinTable()
+  tags: TagEntity[];
 }
