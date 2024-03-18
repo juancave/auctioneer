@@ -22,6 +22,6 @@ export class UserCreditController {
 
   @Post('/credit')
   create(@Body() userCreditDto: UserCreditDto): Promise<UserCreditDto> {
-    return this.userCreditService.create(userCreditDto);
+    return this.userCreditService.createDeposit(userCreditDto);
   }
 }

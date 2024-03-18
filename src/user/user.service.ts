@@ -37,6 +37,16 @@ export class UserService {
     return this.convertEntityToDto(user);
   }
 
+  async getEntityById(id: number): Promise<UserEntity> {
+    const user = await this.userRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new NotFoundException('The user was not found');
+    }
+
+    return user;
+  }
+
   async create(userDto: UserDto): Promise<UserDto> {
     if (!userDto.email || !userDto.name) {
       throw new BadRequestException(MISSING_FIELDS);

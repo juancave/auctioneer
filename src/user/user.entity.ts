@@ -18,4 +18,7 @@ export class UserEntity {
 
   @Column({ length: 80 })
   email: string;
+
+  // @Column()
+  // currentBalance: number;
 }

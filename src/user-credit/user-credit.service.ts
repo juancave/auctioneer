@@ -9,6 +9,7 @@ import { UserCreditEntity } from './user-credit.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
+import { UserEntity } from 'src/user/user.entity';
 
 @Injectable()
 export class UserCreditService {
@@ -28,6 +29,9 @@ export class UserCreditService {
       relations: {
         user: true,
       },
+      order: {
+        id: 'desc',
+      },
     });
 
     if (!userCredits.length) {
@@ -37,26 +41,60 @@ export class UserCreditService {
     return userCredits.map((userCredit) => this.convertEntityToDto(userCredit));
   }
 
-  async create(userCreditDto: UserCreditDto): Promise<UserCreditDto> {
+  async createDeposit(userCreditDto: UserCreditDto): Promise<UserCreditDto> {
     if (!userCreditDto.userId || !userCreditDto.value) {
       throw new BadRequestException(MISSING_FIELDS);
     }
 
-    const user = await this.userService.getById(userCreditDto.userId);
+    const user = await this.userService.getEntityById(userCreditDto.userId);
     if (!user) {
       throw new BadRequestException('The user does not exists');
     }
 
+    const userCredit = await this.create(
+      userCreditDto.value,
+      user,
+      'deposit',
+      'applied',
+    );
+
+    return this.convertEntityToDto(userCredit);
+  }
+
+  async createForBid(
+    value: number,
+    user: UserEntity,
+    type: string,
+    state: string,
+  ): Promise<UserCreditEntity> {
+    return await this.create(value, user, type, state);
+  }
+
+  private async create(
+    value: number,
+    user: UserEntity,
+    type: string,
+    state: string,
+  ): Promise<UserCreditEntity> {
     const userCredit = this.userCreditRepository.create({
-      value: userCreditDto.value,
-      state: 'applied',
-      type: 'deposit',
+      value,
+      state,
+      type,
       user,
     });
 
-    const savedUserCredit = await this.userCreditRepository.save(userCredit);
+    return await this.userCreditRepository.save(userCredit);
+  }
 
-    return this.convertEntityToDto(savedUserCredit);
+  async changeState(id: number, state: string): Promise<void> {
+    const userCredit = await this.userCreditRepository.findOne({
+      where: { id },
+    });
+
+    if (userCredit) {
+      userCredit.state = state;
+      await this.userCreditRepository.save(userCredit);
+    }
   }
 
   private convertEntityToDto = (entity: UserCreditEntity) => {

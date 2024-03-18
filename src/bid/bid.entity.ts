@@ -1,4 +1,5 @@
 import { AuctionEntity } from 'src/auction/auction.entity';
+import { UserCreditEntity } from 'src/user-credit/user-credit.entity';
 import { UserEntity } from 'src/user/user.entity';
 import {
   Entity,
@@ -27,4 +28,8 @@ export class BidEntity {
   @ManyToOne(() => UserEntity)
   @JoinColumn()
   user: UserEntity;
+
+  @ManyToOne(() => UserCreditEntity)
+  @JoinColumn()
+  credit: UserCreditEntity;
 }

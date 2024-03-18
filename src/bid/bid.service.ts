@@ -11,6 +11,7 @@ import { UserService } from '../user/user.service';
 import { BidEntity } from './bid.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UserCreditService } from 'src/user-credit/user-credit.service';
 
 @Injectable()
 export class BidService {
@@ -19,6 +20,7 @@ export class BidService {
     private bidRepository: Repository<BidEntity>,
     private userService: UserService,
     private auctionService: AuctionService,
+    private userCreditService: UserCreditService,
   ) {}
 
   async getByAuctionId(auctionId: number): Promise<BidDto[]> {
@@ -78,7 +80,7 @@ export class BidService {
       throw new BadRequestException('The auction does not exists');
     }
 
-    const user = await this.userService.getById(bidDto.userId);
+    const user = await this.userService.getEntityById(bidDto.userId);
     if (!user) {
       throw new BadRequestException('The user does not exists');
     }
@@ -94,9 +96,13 @@ export class BidService {
         user: {
           id: true,
         },
+        credit: {
+          id: true,
+        },
       },
-      relations: { user: true },
+      relations: { user: true, credit: true },
     });
+
     if (mostRecentBid) {
       const maxValue = mostRecentBid.value;
       const minimumBid = maxValue + auction.increments;
@@ -120,7 +126,7 @@ export class BidService {
 
     if (bidDto.value < auction.minBid) {
       throw new ConflictException(
-        `The provided value is less than the minimun bid of ${auction.startsOn}`,
+        `The provided value is less than the minimun bid of ${auction.minBid}`,
       );
     }
 
@@ -130,10 +136,29 @@ export class BidService {
       );
     }
 
+    if (mostRecentBid) {
+      await this.userCreditService.changeState(
+        mostRecentBid.credit.id,
+        'outbid',
+      );
+    }
+
+    const isBuyout = bidDto.value === auction.value;
+    const type = isBuyout ? 'buyout' : 'bid';
+    const state = isBuyout ? 'applied' : 'pending';
+
+    const credit = await this.userCreditService.createForBid(
+      bidDto.value,
+      user,
+      type,
+      state,
+    );
+
     const bidEntity: BidEntity = this.bidRepository.create({
       value: bidDto.value,
       auction,
       user,
+      credit,
     });
 
     const createdBid = await this.bidRepository.save(bidEntity);
