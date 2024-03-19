@@ -89,6 +89,18 @@ export class BidService {
       throw new ConflictException('The auction is not longer available');
     }
 
+    if (bidDto.value < auction.minBid) {
+      throw new ConflictException(
+        `The provided value is less than the minimun bid of ${auction.minBid}`,
+      );
+    }
+
+    if (bidDto.value > auction.value) {
+      throw new ConflictException(
+        `The provided value is highter than the buyout value of ${auction.value}`,
+      );
+    }
+
     const mostRecentBid = await this.bidRepository.findOne({
       where: { auction: { id: bidDto.auctionId } },
       order: { value: 'desc' },
@@ -122,18 +134,6 @@ export class BidService {
           `The minimum bid for this auction is ${minimumBid}`,
         );
       }
-    }
-
-    if (bidDto.value < auction.minBid) {
-      throw new ConflictException(
-        `The provided value is less than the minimun bid of ${auction.minBid}`,
-      );
-    }
-
-    if (bidDto.value > auction.value) {
-      throw new ConflictException(
-        `The provided value is highter than the buyout value of ${auction.value}`,
-      );
     }
 
     if (mostRecentBid) {
