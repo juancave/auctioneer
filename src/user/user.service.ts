@@ -69,7 +69,18 @@ export class UserService {
     return this.convertEntityToDto(savedUser);
   }
 
+  async updateEntity(user: UserEntity): Promise<UserDto> {
+    const savedUser = await this.userRepository.save(user);
+
+    return this.convertEntityToDto(savedUser);
+  }
+
   private convertEntityToDto = (entity: UserEntity) => {
-    return new UserDto(entity.id, entity.email, entity.name);
+    return new UserDto(
+      entity.id,
+      entity.email,
+      entity.name,
+      entity.currentBalance,
+    );
   };
 }

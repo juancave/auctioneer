@@ -75,6 +75,7 @@ export class BidService {
       throw new BadRequestException(MISSING_FIELDS);
     }
 
+    // TO DO: Decorator on the controller
     const auction = await this.auctionService.findOneById(bidDto.auctionId);
     if (!auction) {
       throw new BadRequestException('The auction does not exists');
@@ -99,6 +100,10 @@ export class BidService {
       throw new ConflictException(
         `The provided value is highter than the buyout value of ${auction.value}`,
       );
+    }
+
+    if (bidDto.value > user.currentBalance) {
+      throw new ConflictException('The user does not have enough credits');
     }
 
     const mostRecentBid = await this.bidRepository.findOne({
@@ -141,6 +146,15 @@ export class BidService {
         mostRecentBid.credit.id,
         'outbid',
       );
+
+      const mostRecentUser = await this.userService.getEntityById(
+        mostRecentBid.user.id,
+      );
+
+      mostRecentUser.currentBalance =
+        mostRecentUser.currentBalance + mostRecentBid.value;
+
+      await this.userService.updateEntity(mostRecentUser);
     }
 
     const isBuyout = bidDto.value === auction.value;
@@ -153,6 +167,9 @@ export class BidService {
       type,
       state,
     );
+
+    user.currentBalance = user.currentBalance - bidDto.value;
+    await this.userService.updateEntity(user);
 
     const bidEntity: BidEntity = this.bidRepository.create({
       value: bidDto.value,

@@ -58,6 +58,10 @@ export class UserCreditService {
       'applied',
     );
 
+    user.currentBalance = user.currentBalance + userCreditDto.value;
+
+    await this.userService.updateEntity(user);
+
     return this.convertEntityToDto(userCredit);
   }
 
