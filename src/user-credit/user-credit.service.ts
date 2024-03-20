@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UserCreditDto } from './user-credit.dto';
+import { CreditState, CreditType, UserCreditDto } from './user-credit.dto';
 import { MISSING_FIELDS } from 'src/shared/constants';
 import { UserCreditEntity } from './user-credit.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -54,8 +54,8 @@ export class UserCreditService {
     const userCredit = await this.create(
       userCreditDto.value,
       user,
-      'deposit',
-      'applied',
+      CreditType.DEPOSIT,
+      CreditState.APPLIED,
     );
 
     user.currentBalance = user.currentBalance + userCreditDto.value;

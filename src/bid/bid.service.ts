@@ -12,6 +12,7 @@ import { BidEntity } from './bid.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserCreditService } from 'src/user-credit/user-credit.service';
+import { CreditState, CreditType } from 'src/user-credit/user-credit.dto';
 
 @Injectable()
 export class BidService {
@@ -144,7 +145,7 @@ export class BidService {
     if (mostRecentBid) {
       await this.userCreditService.changeState(
         mostRecentBid.credit.id,
-        'outbid',
+        CreditState.OUTBID,
       );
 
       const mostRecentUser = await this.userService.getEntityById(
@@ -158,8 +159,8 @@ export class BidService {
     }
 
     const isBuyout = bidDto.value === auction.value;
-    const type = isBuyout ? 'buyout' : 'bid';
-    const state = isBuyout ? 'applied' : 'pending';
+    const type = isBuyout ? CreditType.BUYOUT : CreditType.BID;
+    const state = isBuyout ? CreditState.APPLIED : CreditState.PENDING;
 
     const credit = await this.userCreditService.createForBid(
       bidDto.value,

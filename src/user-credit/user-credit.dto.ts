@@ -19,3 +19,15 @@ export class UserCreditDto {
     this.userId = userId;
   }
 }
+
+export enum CreditState {
+  APPLIED = 'applied',
+  PENDING = 'pending',
+  OUTBID = 'outbid',
+}
+
+export enum CreditType {
+  DEPOSIT = 'deposit',
+  BUYOUT = 'buyout',
+  BID = 'bid',
+}
